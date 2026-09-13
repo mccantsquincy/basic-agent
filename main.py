@@ -47,7 +47,7 @@ tool_schema = [
     }
 ]
 
-
+# OPENAI API request with input
 response = client.responses.create(
     model="gpt-4o-mini",
     input="What appointments are available on 09/12/2026?",
@@ -59,6 +59,19 @@ args = json.loads(tool_call.arguments)
 function = tools_library.get(tool_call.name)
 result = function(**args)
 
+# Tool output
+tool_output = {
+    "type": "function_call_output",
+    "call_id": tool_call.call_id,
+    "output": json.dumps(result)
+}
 
-print(result)
+final_response = client.responses.create(
+    model = "gpt-4o-mini",
+    previous_response_id = response.id,
+    input = [tool_output]
+)
+
+
+print(final_response.output_text)
 

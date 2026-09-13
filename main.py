@@ -1,6 +1,7 @@
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
+import json
 
 load_dotenv()
 
@@ -53,5 +54,11 @@ response = client.responses.create(
     tools = tool_schema
 )
 
-print(response.output)
+tool_call = response.output[0]
+args = json.loads(tool_call.arguments)
+function = tools_library.get(tool_call.name)
+result = function(**args)
+
+
+print(result)
 

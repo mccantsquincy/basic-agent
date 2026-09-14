@@ -59,7 +59,7 @@ while True:
     tool_call_outputs = []
 
     for item in response.output:
-        
+
         if item.type == "function_call":
 
             tool_call = item
@@ -86,10 +86,9 @@ while True:
         )
         
     else:
-        print(response.output_text)
         break
 
     
 
-print(final_response.output_text)
+print(response.output_text)
 

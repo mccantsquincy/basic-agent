@@ -54,24 +54,42 @@ response = client.responses.create(
     tools = tool_schema
 )
 
-tool_call = response.output[0]
-args = json.loads(tool_call.arguments)
-function = tools_library.get(tool_call.name)
-result = function(**args)
+while True:
 
-# Tool output
-tool_output = {
-    "type": "function_call_output",
-    "call_id": tool_call.call_id,
-    "output": json.dumps(result)
-}
+    tool_call_outputs = []
 
-final_response = client.responses.create(
-    model = "gpt-4o-mini",
-    previous_response_id = response.id,
-    input = [tool_output]
-)
+    for item in response.output:
+        
+        if item.type == "function_call":
 
+            tool_call = item
+            tool_name = tool_call.name
+            args = json.loads(tool_call.arguments)
+
+            function = tools_library.get(tool_call.name)
+
+            result = function(**args)
+
+            # Tool outputs appending to tool call outputs list
+            tool_call_outputs.append({
+                "type": "function_call_output",
+                "call_id": tool_call.call_id,
+                "output": json.dumps(result)
+            })
+
+    if tool_call_outputs:
+
+        response = client.responses.create(
+            model = "gpt-4o-mini",
+            previous_response_id = response.id,
+            input = tool_call_outputs
+        )
+        
+    else:
+        print(response.output_text)
+        break
+
+    
 
 print(final_response.output_text)
 

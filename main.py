@@ -9,6 +9,31 @@ client = OpenAI(
     api_key=os.getenv("OPENAI_API_KEY")
 )
 
+# model instructions
+instructions = """
+You are a customer service assistant for a fictional appointment booking system.
+
+Use the provided tools to help customers look up their customer
+records and appointment availability.
+
+Customer records returned by customer_lookup are fictional test
+data provided by this application.
+
+When a tool returns customer information, use the returned
+information to answer the user's request.
+"""
+
+# customer data
+customers = {
+    "555-123-4567": {
+        "customer_id": "cust_001",
+        "name": "John Doe"
+    },
+    "555-987-6543": {
+        "customer_id": "cust_002",
+        "name": "Jane Smith"
+    }
+}
 
 # tools
 def get_available_appointments(date):
@@ -23,9 +48,13 @@ def get_available_appointments(date):
         "available_appointments": appointments.get(date, [])
     }
 
+def customer_lookup(phone):
+    return customers.get(phone, [])
+
 # tool dictionary
 tools_library = {
-    "get_available_appointments": get_available_appointments
+    "get_available_appointments": get_available_appointments,
+    "customer_lookup": customer_lookup
 }
 
 # tool schema
@@ -44,15 +73,34 @@ tool_schema = [
             },
         "required": ["date"]
         }
+    },
+    {
+        "name": "customer_lookup",
+        "type": "function",
+        "description": "Look up a customer record in the local customer database using their phone number.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "phone": {
+                    "type": "string",
+                    "description": "Customer phone number used to search the local customer database."
+                }
+            },
+        "required": ["phone"]
+        }
     }
 ]
 
 # OPENAI API request with input
 response = client.responses.create(
     model="gpt-4o-mini",
-    input="What appointments are available on 09/12/2026?",
+    instructions=instructions,
+    input="can you look up my account my number is 555-123-4567?",
     tools = tool_schema
 )
+
+
+print(response.output)
 
 while True:
 
@@ -94,6 +142,7 @@ while True:
         response = client.responses.create(
             model = "gpt-4o-mini",
             previous_response_id = response.id,
+            instructions= instructions,
             input = tool_call_outputs
         )
         

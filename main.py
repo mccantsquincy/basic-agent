@@ -62,15 +62,23 @@ while True:
 
         if item.type == "function_call":
 
-            try:
-
             tool_call = item
             tool_name = tool_call.name
             args = json.loads(tool_call.arguments)
 
             function = tools_library.get(tool_call.name)
 
-            result = function(**args)
+            if function:
+                try:
+                    result = function(**args)
+                except Exception as error:
+                    result = {
+                        "error": str(error)
+                    }
+            else:
+                result = {
+                    "error": f"Tool {tool_name} not found"
+                }
 
             # Tool outputs appending to tool call outputs list
             tool_call_outputs.append({
@@ -79,10 +87,7 @@ while True:
                 "output": json.dumps(result)
             })
 
-            except Exemption as error:
-                result = {
-                    "error": f"Tool {tool_name} not found."
-                }
+
 
     if tool_call_outputs:
 

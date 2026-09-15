@@ -36,6 +36,7 @@ customers = {
 }
 
 # tools
+## get availability
 def get_available_appointments(date):
     appointments = {
         "09/11/2026": ["10:00am","12:00pm","01:00pm"],
@@ -48,13 +49,30 @@ def get_available_appointments(date):
         "available_appointments": appointments.get(date, [])
     }
 
+## search customer
 def customer_lookup(phone):
     return customers.get(phone, [])
+
+## Creating bookings and manage booking list
+bookings = []
+
+def book_appointment(customer_id, date, time):
+    booking = {
+        "customer_id": customer_id,
+        "date": date,
+        "time": time
+    }
+
+    bookings.append(booking)
+
+    return booking
+
 
 # tool dictionary
 tools_library = {
     "get_available_appointments": get_available_appointments,
-    "customer_lookup": customer_lookup
+    "customer_lookup": customer_lookup,
+    "book_appointment": book_appointment
 }
 
 # tool schema
@@ -88,6 +106,29 @@ tool_schema = [
             },
         "required": ["phone"]
         }
+    },
+    {
+        "name": "book_appointment",
+        "type": "function",
+        "description": "Create an appointment booking for a customer using their customer ID, date, and time.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "customer_id": {
+                    "type": "string",
+                    "description": "Customer id to reference for booking creation."
+                },
+                "date": {
+                    "type": "string",
+                    "description": "Customer desired date for their appointment booking."
+                },
+                "time": {
+                    "type": "string",
+                    "description": "Customer desired time for their appointment booking."
+                }
+            },
+        "required": ["customer_id","date", "time"]
+        }
     }
 ]
 
@@ -95,7 +136,8 @@ tool_schema = [
 response = client.responses.create(
     model="gpt-4o-mini",
     instructions=instructions,
-    input="can you look up my account my number is 555-123-4567?",
+    input="""My phone number is 555-123-4567.
+Can you book me for 12:00pm on 09/12/2026?""",
     tools = tool_schema
 )
 
@@ -143,8 +185,11 @@ while True:
             model = "gpt-4o-mini",
             previous_response_id = response.id,
             instructions= instructions,
-            input = tool_call_outputs
+            input = tool_call_outputs,
+            tools=tool_schema
         )
+
+        print(response.output)
         
     else:
         break

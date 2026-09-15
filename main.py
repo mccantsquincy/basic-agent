@@ -66,7 +66,7 @@ while True:
             tool_name = tool_call.name
             args = json.loads(tool_call.arguments)
 
-            function = tools_library.get(tool_call.name)
+            function = tools_library.get(tool_name)
 
             if function:
                 try:

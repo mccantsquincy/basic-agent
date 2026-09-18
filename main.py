@@ -35,15 +35,16 @@ customers = {
     }
 }
 
-# tools
-## get availability
-def get_available_appointments(date):
-    appointments = {
+# Mock slots data
+appointments = {
         "09/11/2026": ["10:00am","12:00pm","01:00pm"],
         "09/12/2026": ["10:00am","12:00pm","01:00pm"],
         "09/13/2026": ["10:00am","12:00pm","01:00pm"],
     }
 
+# tools
+## get availability
+def get_available_appointments(date):
     return {
         "date": date,
         "available_appointments": appointments.get(date, [])
@@ -57,15 +58,27 @@ def customer_lookup(phone):
 bookings = []
 
 def book_appointment(customer_id, date, time):
-    booking = {
-        "customer_id": customer_id,
-        "date": date,
-        "time": time
-    }
+    
 
-    bookings.append(booking)
+    available_times = appointments.get(date, [])
 
-    return booking
+    if time in available_times:
+        booking = {
+            "customer_id": customer_id,
+            "date": date,
+            "time": time
+        }
+
+        bookings.append(booking)
+
+        return booking
+
+    else:
+        return { "error": "Requested appointment time is not available." }
+
+    
+
+    
 
 
 # tool dictionary
@@ -136,8 +149,10 @@ tool_schema = [
 response = client.responses.create(
     model="gpt-4o-mini",
     instructions=instructions,
-    input="""My phone number is 555-123-4567.
-Can you book me for 12:00pm on 09/12/2026?""",
+    input="""
+My phone number is 555-123-4567.
+Can you book me for 3:00pm on 09/12/2026?
+""",
     tools = tool_schema
 )
 
@@ -197,4 +212,14 @@ while True:
     
 
 print(response.output_text)
+
+print(
+    book_appointment(
+        customer_id="cust_001",
+        date="09/12/2026",
+        time="3:00pm"
+    )
+)
+
+print(bookings)
 

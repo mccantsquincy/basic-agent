@@ -145,81 +145,83 @@ tool_schema = [
     }
 ]
 
+
 # OPENAI API request with input
-response = client.responses.create(
-    model="gpt-4o-mini",
-    instructions=instructions,
-    input="""
-My phone number is 555-123-4567.
-Can you book me for 3:00pm on 09/12/2026?
-""",
-    tools = tool_schema
-)
-
-
-print(response.output)
-
-while True:
-
-    tool_call_outputs = []
-
-    for item in response.output:
-
-        if item.type == "function_call":
-
-            tool_call = item
-            tool_name = tool_call.name
-            args = json.loads(tool_call.arguments)
-
-            function = tools_library.get(tool_name)
-
-            if function:
-                try:
-                    result = function(**args)
-                except Exception as error:
-                    result = {
-                        "error": str(error)
-                    }
-            else:
-                result = {
-                    "error": f"Tool {tool_name} not found"
-                }
-
-            # Tool outputs appending to tool call outputs list
-            tool_call_outputs.append({
-                "type": "function_call_output",
-                "call_id": tool_call.call_id,
-                "output": json.dumps(result)
-            })
-
-
-
-    if tool_call_outputs:
-
-        response = client.responses.create(
-            model = "gpt-4o-mini",
-            previous_response_id = response.id,
-            instructions= instructions,
-            input = tool_call_outputs,
-            tools=tool_schema
-        )
-
-        print(response.output)
-        
-    else:
-        break
-
-    
-
-print(response.output_text)
-
-print(
-    book_appointment(
-        customer_id="cust_001",
-        date="09/12/2026",
-        time="3:00pm"
+if __name__ == "__main__":
+    response = client.responses.create(
+        model="gpt-4o-mini",
+        instructions=instructions,
+        input="""
+    My phone number is 555-123-4567.
+    Can you book me for 3:00pm on 09/12/2026?
+    """,
+        tools = tool_schema
     )
-)
 
-print(bookings)
+
+    print(response.output)
+
+    while True:
+
+        tool_call_outputs = []
+
+        for item in response.output:
+
+            if item.type == "function_call":
+
+                tool_call = item
+                tool_name = tool_call.name
+                args = json.loads(tool_call.arguments)
+
+                function = tools_library.get(tool_name)
+
+                if function:
+                    try:
+                        result = function(**args)
+                    except Exception as error:
+                        result = {
+                            "error": str(error)
+                        }
+                else:
+                    result = {
+                        "error": f"Tool {tool_name} not found"
+                    }
+
+                # Tool outputs appending to tool call outputs list
+                tool_call_outputs.append({
+                    "type": "function_call_output",
+                    "call_id": tool_call.call_id,
+                    "output": json.dumps(result)
+                })
+
+
+
+        if tool_call_outputs:
+
+            response = client.responses.create(
+                model = "gpt-4o-mini",
+                previous_response_id = response.id,
+                instructions= instructions,
+                input = tool_call_outputs,
+                tools=tool_schema
+            )
+
+            print(response.output)
+            
+        else:
+            break
+
+        
+
+    print(response.output_text)
+
+    print(
+        book_appointment(
+            customer_id="cust_001",
+            date="09/12/2026",
+            time="3:00pm"
+        )
+    )
+
+    print(bookings)
 

@@ -1,4 +1,9 @@
+import pytest
 from main import book_appointment, bookings
+
+@pytest.fixture(autouse=True)
+def clear_bookings():
+    bookings.clear()
 
 def test_unavailable_appointment():
     result = book_appointment(

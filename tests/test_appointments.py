@@ -1,5 +1,5 @@
 import pytest
-from main import book_appointment, bookings
+from tools.appointments import book_appointment, bookings
 
 @pytest.fixture(autouse=True)
 def clear_bookings():

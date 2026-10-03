@@ -1,8 +1,19 @@
 from tools.schemas import tool_schema
 from agent.instructions import instructions
-from tools.registery import tools_library
+from tools.registry import tools_library
 
-def run_agent(response):
+import json
+
+
+def run_agent(client, user_input):
+    response = client.responses.create(
+        model="gpt-4o-mini",
+        instructions=instructions,
+        input=user_input,
+        tools = tool_schema
+    )
+
+
     while True:
 
         tool_call_outputs = []
@@ -51,4 +62,4 @@ def run_agent(response):
         else:
             break
 
-    return (response.output)
+    return (response.output_text)
